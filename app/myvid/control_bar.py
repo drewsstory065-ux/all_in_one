@@ -19,11 +19,21 @@ class ControlBar(QWidget):
     volume_display_toggled = pyqtSignal()
     toggle_fullscreen = pyqtSignal()
     select_video = pyqtSignal()
+    previous_video = pyqtSignal()
+    next_video = pyqtSignal()
     
     def __init__(self):
         super().__init__()
         self.is_playing = False
         self.setup_ui()
+    
+    def update_navigation_buttons(self, current_index, item_count, loop_mode=False):
+        """Update the enabled state of previous/next buttons based on playlist position."""
+        # Previous button: disabled if at first item and not in loop mode
+        self.previous_btn.setEnabled(loop_mode or current_index > 0)
+        
+        # Next button: disabled if at last item and not in loop mode
+        self.next_btn.setEnabled(loop_mode or current_index < item_count - 1)
     
     def setup_ui(self):
         """Initialize the control bar UI."""
@@ -32,11 +42,13 @@ class ControlBar(QWidget):
         layout.setSpacing(5)
         
         # Control buttons
-        self.toggle_playlist_btn = self.create_button("▶", "Show Playlist")
+        self.toggle_playlist_btn = self.create_button("☰", "Show Playlist")
         self.select_video_btn = self.create_button("📁", "Select Video")
         self.rewind_fast_btn = self.create_button("<<", "Rewind Fast")
         self.rewind_btn = self.create_button("<", "Rewind")
+        self.previous_btn = self.create_button("◀◀", "Previous Video (B)")
         self.play_pause_btn = self.create_button(">", "Play")
+        self.next_btn = self.create_button("▶▶", "Next Video (N)")
         self.forward_btn = self.create_button(">", "Forward")
         self.forward_fast_btn = self.create_button(">>", "Forward Fast")
         
@@ -74,7 +86,9 @@ class ControlBar(QWidget):
         layout.addWidget(self.select_video_btn)
         layout.addWidget(self.rewind_fast_btn)
         layout.addWidget(self.rewind_btn)
+        layout.addWidget(self.previous_btn)
         layout.addWidget(self.play_pause_btn)
+        layout.addWidget(self.next_btn)
         layout.addWidget(self.forward_btn)
         layout.addWidget(self.forward_fast_btn)
         layout.addWidget(self.current_time_label)
@@ -105,7 +119,9 @@ class ControlBar(QWidget):
         self.select_video_btn.clicked.connect(self.select_video.emit)
         self.rewind_fast_btn.clicked.connect(self.rewind_fast.emit)
         self.rewind_btn.clicked.connect(self.rewind.emit)
+        self.previous_btn.clicked.connect(self.previous_video.emit)
         self.play_pause_btn.clicked.connect(self.toggle_play_pause)
+        self.next_btn.clicked.connect(self.next_video.emit)
         self.forward_btn.clicked.connect(self.forward.emit)
         self.forward_fast_btn.clicked.connect(self.forward_fast.emit)
         self.volume_btn.clicked.connect(self.toggle_volume_display)
@@ -135,10 +151,8 @@ class ControlBar(QWidget):
     def update_playlist_button(self, is_visible):
         """Update the playlist toggle button based on playlist visibility."""
         if is_visible:
-            self.toggle_playlist_btn.setText("◀")
             self.toggle_playlist_btn.setToolTip("Hide Playlist")
         else:
-            self.toggle_playlist_btn.setText("▶")
             self.toggle_playlist_btn.setToolTip("Show Playlist")
     
     def on_slider_released(self):

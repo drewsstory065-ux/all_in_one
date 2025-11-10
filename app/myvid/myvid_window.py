@@ -95,7 +95,9 @@ class MyVidWindow(QWidget):
         self.control_bar.select_video.connect(self.on_select_video)
         self.control_bar.rewind_fast.connect(self.on_rewind_fast)
         self.control_bar.rewind.connect(self.on_rewind)
+        self.control_bar.previous_video.connect(self.play_previous_video)
         self.control_bar.play_pause.connect(self.on_play_pause)
+        self.control_bar.next_video.connect(self.play_next_video)
         self.control_bar.forward.connect(self.on_forward)
         self.control_bar.forward_fast.connect(self.on_forward_fast)
         self.control_bar.seek.connect(self.on_seek)
@@ -113,6 +115,8 @@ class MyVidWindow(QWidget):
         self.playlist_widget.item_selected.connect(self.on_playlist_item_selected)
         self.playlist_widget.playlist_visibility_changed.connect(self.on_playlist_visibility_changed)
         self.playlist_model.current_item_changed.connect(self.on_current_playlist_item_changed)
+        self.playlist_model.playlist_changed.connect(self.update_navigation_buttons)
+        self.playlist_model.current_item_changed.connect(self.update_navigation_buttons)
         
         # Timer for UI updates
         self.timer.timeout.connect(self.update_time_display)
@@ -348,6 +352,14 @@ class MyVidWindow(QWidget):
         prev_index = self.playlist_model.get_previous_index()
         if prev_index >= 0:
             self.playlist_model.set_current_index(prev_index)
+    
+    def update_navigation_buttons(self):
+        """Update the state of previous/next navigation buttons."""
+        current_index = self.playlist_model.current_index
+        item_count = self.playlist_model.get_item_count()
+        loop_mode = self.playlist_model.loop_mode
+        
+        self.control_bar.update_navigation_buttons(current_index, item_count, loop_mode)
     
     def on_select_video(self):
         """Handle video file selection - now adds to playlist."""
