@@ -7,6 +7,8 @@ from .history_model import HistoryModel
 from .history_widget import HistoryWidget
 from .bookmark_model import BookmarkModel
 from .bookmark_widget import BookmarkWidget
+from .ad_blocker_model import AdBlockerModel
+from .ad_blocker_controller import AdBlockerController
 
 class MyBrowserWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -17,6 +19,8 @@ class MyBrowserWindow(QMainWindow):
         # Initialize components
         self.history_model = HistoryModel(self)
         self.bookmark_model = BookmarkModel(self)
+        self.ad_blocker_model = AdBlockerModel(self)
+        self.ad_blocker_controller = AdBlockerController(self.ad_blocker_model, self)
         self.tab_widget = TabWidget(self)
         self.navigation_bar = NavigationBar(self)
         self.history_widget = HistoryWidget(self.history_model, self)
@@ -41,6 +45,9 @@ class MyBrowserWindow(QMainWindow):
         
         # Connect initial tab to history tracking
         initial_tab.title_changed.connect(self.add_to_history)
+        
+        # Set initial web view for ad blocker controller
+        self.ad_blocker_controller.set_current_web_view(initial_tab)
 
         # Connect signals
         self.connect_signals()
@@ -51,6 +58,7 @@ class MyBrowserWindow(QMainWindow):
         self.navigation_bar.url_line_edit.returnPressed.connect(self.navigate_to_url)
         self.navigation_bar.history_button.clicked.connect(self.toggle_history)
         self.navigation_bar.bookmark_button.clicked.connect(self.toggle_bookmarks)
+        self.navigation_bar.ad_blocker_button.clicked.connect(self.toggle_ad_blocking)
         
         # Tab signals
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
@@ -65,6 +73,12 @@ class MyBrowserWindow(QMainWindow):
         # Bookmark signals
         self.bookmark_widget.bookmark_item_clicked.connect(self.open_bookmark_url)
         self.bookmark_widget.add_button.clicked.connect(self.add_current_page_to_bookmarks)
+        
+        # Ad blocker signals
+        self.ad_blocker_model.ad_blocking_state_changed.connect(self.update_ad_blocker_button)
+        
+        # Initialize ad blocker button state
+        self.update_ad_blocker_button(self.ad_blocker_model.enabled)
 
     def navigate_to_url(self):
         url = self.navigation_bar.url_line_edit.text()
@@ -102,6 +116,9 @@ class MyBrowserWindow(QMainWindow):
             
             # Connect title changed signal for history tracking
             current_web_view.title_changed.connect(self.add_to_history)
+            
+            # Set current web view for ad blocker controller
+            self.ad_blocker_controller.set_current_web_view(current_web_view)
 
     def add_to_history(self, title, url):
         """Add page to history when title changes"""
@@ -168,6 +185,21 @@ class MyBrowserWindow(QMainWindow):
             if url and url != "about:blank" and not url.startswith("data:"):
                 self.bookmark_model.add_bookmark(url, title)
                 print(f"Bookmark added: {title} - {url}")
+
+    def toggle_ad_blocking(self):
+        """Toggle ad blocking state"""
+        new_state = self.ad_blocker_controller.toggle_ad_blocking()
+        print(f"Ad blocking {'enabled' if new_state else 'disabled'}")
+        return new_state
+
+    def update_ad_blocker_button(self, enabled):
+        """Update ad blocker button appearance based on state"""
+        if enabled:
+            self.navigation_bar.ad_blocker_button.setText("🔇")
+            self.navigation_bar.ad_blocker_button.setToolTip("Ad blocking enabled. Click to disable.")
+        else:
+            self.navigation_bar.ad_blocker_button.setText("🔊")
+            self.navigation_bar.ad_blocker_button.setToolTip("Ad blocking disabled. Click to enable.")
 
     def closeEvent(self, event):
         self.close()

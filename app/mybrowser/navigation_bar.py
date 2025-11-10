@@ -14,11 +14,13 @@ class NavigationBar(QToolBar):
         self.go_button = QPushButton("Go", self)
         self.history_button = QPushButton("⌛", self)
         self.bookmark_button = QPushButton("🔖", self)
+        self.ad_blocker_button = QPushButton("🔇", self)  # Ad blocker toggle
 
         self.back_button.setFixedSize(20, 20)
         self.next_button.setFixedSize(20, 20)
         self.history_button.setFixedSize(20, 20)
         self.bookmark_button.setFixedSize(20, 20)
+        self.ad_blocker_button.setFixedSize(20, 20)
 
         self.addWidget(self.back_button)
         self.addWidget(self.next_button)
@@ -27,3 +29,4 @@ class NavigationBar(QToolBar):
         self.addWidget(self.go_button)
         self.addWidget(self.history_button)
         self.addWidget(self.bookmark_button)
+        self.addWidget(self.ad_blocker_button)
