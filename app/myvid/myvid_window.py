@@ -55,15 +55,16 @@ class MyVidWindow(QWidget):
         self.playlist_model = PlaylistModel()
         self.playlist_widget = PlaylistWidget(self.playlist_model)
         
-        # Add video layout and playlist to main layout
-        main_layout.addLayout(video_layout)
+        # Add playlist and video layout to main layout (playlist on left)
         main_layout.addWidget(self.playlist_widget)
+        main_layout.addLayout(video_layout)
         
         self.setLayout(main_layout)
     
     def connect_signals(self):
         """Connect all component signals."""
         # Control bar signals
+        self.control_bar.toggle_playlist.connect(self.on_toggle_playlist)
         self.control_bar.select_video.connect(self.on_select_video)
         self.control_bar.rewind_fast.connect(self.on_rewind_fast)
         self.control_bar.rewind.connect(self.on_rewind)
@@ -154,6 +155,10 @@ class MyVidWindow(QWidget):
         """Toggle volume slider visibility."""
         self.control_bar.toggle_volume_display()
     
+    def on_toggle_playlist(self):
+        """Handle playlist toggle from control bar."""
+        self.playlist_widget.on_toggle_playlist()
+    
     
     def on_position_changed(self, position):
         """Handle media player position changes."""
@@ -222,6 +227,9 @@ class MyVidWindow(QWidget):
         else:
             self.resize(self.width() - 300, self.height())
         self.center_window()
+        
+        # Update control bar button state
+        self.control_bar.update_playlist_button(is_visible)
     
     def on_current_playlist_item_changed(self, index):
         """Handle changes to the current playlist item."""

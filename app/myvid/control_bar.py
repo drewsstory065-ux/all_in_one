@@ -8,6 +8,7 @@ class ControlBar(QWidget):
     """Control bar component with playback controls and timeline."""
     
     # Signals for control actions
+    toggle_playlist = pyqtSignal()
     rewind_fast = pyqtSignal()
     rewind = pyqtSignal()
     play_pause = pyqtSignal()
@@ -31,6 +32,7 @@ class ControlBar(QWidget):
         layout.setSpacing(5)
         
         # Control buttons
+        self.toggle_playlist_btn = self.create_button("▶", "Show Playlist")
         self.select_video_btn = self.create_button("📁", "Select Video")
         self.rewind_fast_btn = self.create_button("<<", "Rewind Fast")
         self.rewind_btn = self.create_button("<", "Rewind")
@@ -68,6 +70,7 @@ class ControlBar(QWidget):
         self.fullscreen_btn = self.create_button("⬚", "Toggle Fullscreen")
         
         # Add widgets to layout
+        layout.addWidget(self.toggle_playlist_btn)
         layout.addWidget(self.select_video_btn)
         layout.addWidget(self.rewind_fast_btn)
         layout.addWidget(self.rewind_btn)
@@ -98,6 +101,7 @@ class ControlBar(QWidget):
     
     def connect_signals(self):
         """Connect button and slider signals."""
+        self.toggle_playlist_btn.clicked.connect(self.toggle_playlist.emit)
         self.select_video_btn.clicked.connect(self.select_video.emit)
         self.rewind_fast_btn.clicked.connect(self.rewind_fast.emit)
         self.rewind_btn.clicked.connect(self.rewind.emit)
@@ -127,6 +131,15 @@ class ControlBar(QWidget):
         else:
             self.volume_btn.setText("🔊")
             self.volume_btn.setToolTip("Volume")
+    
+    def update_playlist_button(self, is_visible):
+        """Update the playlist toggle button based on playlist visibility."""
+        if is_visible:
+            self.toggle_playlist_btn.setText("◀")
+            self.toggle_playlist_btn.setToolTip("Hide Playlist")
+        else:
+            self.toggle_playlist_btn.setText("▶")
+            self.toggle_playlist_btn.setToolTip("Show Playlist")
     
     def on_slider_released(self):
         """Handle slider release for timeline seeking."""

@@ -42,14 +42,12 @@ class PlaylistWidget(QWidget):
         self.add_video_btn = self.create_button("+", "Add Video")
         self.add_folder_btn = self.create_button("📁", "Add Folder")
         self.clear_btn = self.create_button("🗑️", "Clear Playlist")
-        self.toggle_btn = self.create_button("◀", "Hide Playlist")
         
         header_layout.addWidget(self.title_label)
         header_layout.addStretch()
         header_layout.addWidget(self.add_video_btn)
         header_layout.addWidget(self.add_folder_btn)
         header_layout.addWidget(self.clear_btn)
-        header_layout.addWidget(self.toggle_btn)
         
         # Playlist list widget
         self.playlist_list = QListWidget()
@@ -97,7 +95,6 @@ class PlaylistWidget(QWidget):
         self.add_video_btn.clicked.connect(self.on_add_video)
         self.add_folder_btn.clicked.connect(self.on_add_folder)
         self.clear_btn.clicked.connect(self.on_clear_playlist)
-        self.toggle_btn.clicked.connect(self.on_toggle_playlist)
         
         # Playlist list signals
         self.playlist_list.itemDoubleClicked.connect(self.on_item_double_clicked)
@@ -169,14 +166,6 @@ class PlaylistWidget(QWidget):
         is_visible = not self.isVisible()
         self.setVisible(is_visible)
         self.playlist_visibility_changed.emit(is_visible)
-        
-        # Update toggle button text
-        if is_visible:
-            self.toggle_btn.setText("◀")
-            self.toggle_btn.setToolTip("Hide Playlist")
-        else:
-            self.toggle_btn.setText("▶")
-            self.toggle_btn.setToolTip("Show Playlist")
     
     def on_item_double_clicked(self, item):
         """Handle double-click on playlist item."""
