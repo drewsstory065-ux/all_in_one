@@ -12,12 +12,15 @@ class NavigationBar(QToolBar):
         self.reload_button = QPushButton("Reload", self)
         self.url_line_edit = QLineEdit(self)
         self.go_button = QPushButton("Go", self)
+        self.history_button = QPushButton("H", self)
 
         self.back_button.setFixedSize(30, 30)
         self.next_button.setFixedSize(30, 30)
+        self.history_button.setFixedSize(30, 30)
 
         self.addWidget(self.back_button)
         self.addWidget(self.next_button)
         self.addWidget(self.reload_button)
         self.addWidget(self.url_line_edit)
         self.addWidget(self.go_button)
+        self.addWidget(self.history_button)
