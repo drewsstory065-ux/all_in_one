@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog, QSplitter
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
@@ -33,10 +33,9 @@ class MyVidWindow(QWidget):
         self.resize(800, 500)
         self.setStyleSheet(VideoPlayerStyles.MAIN_WINDOW_STYLE)
         
-        # Create main horizontal layout for video and playlist
-        main_layout = QHBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
+        # Create main splitter for resizable playlist and video layout
+        self.main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.main_splitter.setChildrenCollapsible(False)
         
         # Create vertical layout for video display and controls
         video_layout = QVBoxLayout()
@@ -51,13 +50,37 @@ class MyVidWindow(QWidget):
         self.control_bar = ControlBar()
         video_layout.addWidget(self.control_bar)
         
+        # Create video container widget
+        video_container = QWidget()
+        video_container.setLayout(video_layout)
+        
         # Create playlist model and widget
         self.playlist_model = PlaylistModel()
         self.playlist_widget = PlaylistWidget(self.playlist_model)
         
-        # Add playlist and video layout to main layout (playlist on left)
-        main_layout.addWidget(self.playlist_widget)
-        main_layout.addLayout(video_layout)
+        # Add playlist and video container to splitter (playlist on left)
+        self.main_splitter.addWidget(self.playlist_widget)
+        self.main_splitter.addWidget(video_container)
+        
+        # Set initial sizes (playlist: 300px, video: rest of space)
+        self.main_splitter.setSizes([300, 500])
+        
+        # Set splitter handle style for better visibility
+        self.main_splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: #555555;
+                width: 2px;
+            }
+            QSplitter::handle:hover {
+                background-color: #777777;
+            }
+        """)
+        
+        # Create main layout and add splitter
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        main_layout.addWidget(self.main_splitter)
         
         self.setLayout(main_layout)
     
@@ -221,12 +244,8 @@ class MyVidWindow(QWidget):
     
     def on_playlist_visibility_changed(self, is_visible):
         """Handle playlist visibility changes."""
-        # Adjust window size when playlist is shown/hidden
-        if is_visible:
-            self.resize(self.width() + 300, self.height())
-        else:
-            self.resize(self.width() - 300, self.height())
-        self.center_window()
+        # Show/hide playlist widget in splitter
+        self.playlist_widget.setVisible(is_visible)
         
         # Update control bar button state
         self.control_bar.update_playlist_button(is_visible)

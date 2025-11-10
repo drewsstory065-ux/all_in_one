@@ -23,8 +23,9 @@ class PlaylistWidget(QWidget):
     
     def setup_ui(self):
         """Initialize the playlist UI."""
-        self.setMinimumWidth(300)
-        self.setMaximumWidth(400)
+        # Set reasonable size constraints for resizable playlist
+        self.setMinimumWidth(200)
+        self.setMaximumWidth(600)
         
         layout = QVBoxLayout()
         layout.setContentsMargins(5, 5, 5, 5)
