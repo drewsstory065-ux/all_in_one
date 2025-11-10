@@ -5,6 +5,8 @@ from .navigation_bar import NavigationBar
 from .tab_widget import TabWidget
 from .history_model import HistoryModel
 from .history_widget import HistoryWidget
+from .bookmark_model import BookmarkModel
+from .bookmark_widget import BookmarkWidget
 
 class MyBrowserWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -14,9 +16,11 @@ class MyBrowserWindow(QMainWindow):
 
         # Initialize components
         self.history_model = HistoryModel(self)
+        self.bookmark_model = BookmarkModel(self)
         self.tab_widget = TabWidget(self)
         self.navigation_bar = NavigationBar(self)
         self.history_widget = HistoryWidget(self.history_model, self)
+        self.bookmark_widget = BookmarkWidget(self.bookmark_model, self)
 
         # Setup UI
         self.addToolBar(self.navigation_bar)
@@ -26,6 +30,11 @@ class MyBrowserWindow(QMainWindow):
         self.history_widget.setWindowTitle("Browser History")
         self.history_widget.resize(600, 400)
         self.history_widget.hide()
+        
+        # Position bookmark widget
+        self.bookmark_widget.setWindowTitle("Bookmarks")
+        self.bookmark_widget.resize(600, 400)
+        self.bookmark_widget.hide()
 
         # Create initial tab
         initial_tab = self.tab_widget.create_tab()
@@ -41,6 +50,7 @@ class MyBrowserWindow(QMainWindow):
         self.navigation_bar.go_button.clicked.connect(self.navigate_to_url)
         self.navigation_bar.url_line_edit.returnPressed.connect(self.navigate_to_url)
         self.navigation_bar.history_button.clicked.connect(self.toggle_history)
+        self.navigation_bar.bookmark_button.clicked.connect(self.toggle_bookmarks)
         
         # Tab signals
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
@@ -51,6 +61,10 @@ class MyBrowserWindow(QMainWindow):
         
         # History signals
         self.history_widget.history_item_clicked.connect(self.open_history_url_in_new_tab)
+        
+        # Bookmark signals
+        self.bookmark_widget.bookmark_item_clicked.connect(self.open_bookmark_url)
+        self.bookmark_widget.add_button.clicked.connect(self.add_current_page_to_bookmarks)
 
     def navigate_to_url(self):
         url = self.navigation_bar.url_line_edit.text()
@@ -123,6 +137,37 @@ class MyBrowserWindow(QMainWindow):
     def update_window_title(self, tab_count):
         """Update window title with tab count"""
         self.setWindowTitle(f"My Browser - {tab_count} tabs")
+
+    def toggle_bookmarks(self):
+        """Show or hide bookmark widget"""
+        if self.bookmark_widget.isVisible():
+            self.bookmark_widget.hide()
+        else:
+            # Position bookmark widget near the navigation bar
+            nav_bar_rect = self.navigation_bar.geometry()
+            bookmark_pos = self.mapToGlobal(nav_bar_rect.bottomLeft())
+            self.bookmark_widget.move(bookmark_pos.x(), bookmark_pos.y())
+            self.bookmark_widget.show()
+            self.bookmark_widget.raise_()
+            self.bookmark_widget.activateWindow()
+
+    def open_bookmark_url(self, url):
+        """Open a bookmark URL in the current tab"""
+        current_web_view = self.tab_widget.currentWidget()
+        if current_web_view:
+            current_web_view.set_url(url)
+
+    def add_current_page_to_bookmarks(self):
+        """Add current page to bookmarks"""
+        current_web_view = self.tab_widget.currentWidget()
+        if current_web_view:
+            url = current_web_view.url().toString()
+            title = current_web_view.title()
+            
+            # Validate URL
+            if url and url != "about:blank" and not url.startswith("data:"):
+                self.bookmark_model.add_bookmark(url, title)
+                print(f"Bookmark added: {title} - {url}")
 
     def closeEvent(self, event):
         self.close()

@@ -9,14 +9,16 @@ class NavigationBar(QToolBar):
 
         self.back_button = QPushButton("<", self)
         self.next_button = QPushButton(">", self)
-        self.reload_button = QPushButton("Reload", self)
+        self.reload_button = QPushButton("♻️", self)
         self.url_line_edit = QLineEdit(self)
         self.go_button = QPushButton("Go", self)
-        self.history_button = QPushButton("H", self)
+        self.history_button = QPushButton("⌛", self)
+        self.bookmark_button = QPushButton("🔖", self)
 
-        self.back_button.setFixedSize(30, 30)
-        self.next_button.setFixedSize(30, 30)
-        self.history_button.setFixedSize(30, 30)
+        self.back_button.setFixedSize(20, 20)
+        self.next_button.setFixedSize(20, 20)
+        self.history_button.setFixedSize(20, 20)
+        self.bookmark_button.setFixedSize(20, 20)
 
         self.addWidget(self.back_button)
         self.addWidget(self.next_button)
@@ -24,3 +26,4 @@ class NavigationBar(QToolBar):
         self.addWidget(self.url_line_edit)
         self.addWidget(self.go_button)
         self.addWidget(self.history_button)
+        self.addWidget(self.bookmark_button)
