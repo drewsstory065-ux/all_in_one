@@ -6,6 +6,7 @@ from .video_display import VideoDisplay
 from .control_bar import ControlBar
 from .playlist_model import PlaylistModel
 from .playlist_widget import PlaylistWidget
+from .playlist_persistence import PlaylistPersistence
 from .styles import VideoPlayerStyles
 
 
@@ -83,6 +84,9 @@ class MyVidWindow(QWidget):
         main_layout.addWidget(self.main_splitter)
         
         self.setLayout(main_layout)
+        
+        # Load saved playlist state after UI is set up
+        self.load_saved_playlist()
     
     def connect_signals(self):
         """Connect all component signals."""
@@ -119,6 +123,54 @@ class MyVidWindow(QWidget):
         x = (screen_geometry.width() - self.width()) // 2
         y = (screen_geometry.height() - self.height()) // 2
         self.setGeometry(x, y, self.width(), self.height())
+    
+    def closeEvent(self, event):
+        """Save playlist state before closing."""
+        try:
+            # Get current playlist width from splitter
+            playlist_width = self.main_splitter.sizes()[0]
+            
+            # Save playlist state
+            PlaylistPersistence.save_playlist(self.playlist_model, playlist_width)
+            
+            print("Playlist state saved successfully")
+            
+        except Exception as e:
+            print(f"Error saving playlist state: {e}")
+        
+        super().closeEvent(event)
+    
+    def load_saved_playlist(self):
+        """Load saved playlist state from persistent storage."""
+        try:
+            playlist_data, playlist_width = PlaylistPersistence.load_playlist()
+            
+            if playlist_data:
+                # Load playlist data into model
+                success = self.playlist_model.load_from_data(playlist_data)
+                
+                if success:
+                    print("Playlist state loaded successfully")
+                    
+                    # Restore playlist width if available
+                    if playlist_width is not None:
+                        total_width = self.main_splitter.width()
+                        video_width = total_width - playlist_width
+                        self.main_splitter.setSizes([playlist_width, video_width])
+                        print(f"Restored playlist width: {playlist_width}px")
+                    
+                    # If there's a current item, play it
+                    if self.playlist_model.current_index >= 0:
+                        current_item = self.playlist_model.get_current_item()
+                        if current_item:
+                            self.load_video_from_path(current_item.file_path)
+                else:
+                    print("Failed to load playlist data")
+            else:
+                print("No saved playlist state found")
+                
+        except Exception as e:
+            print(f"Error loading saved playlist: {e}")
     
     def on_rewind_fast(self):
         """Handle fast rewind action."""

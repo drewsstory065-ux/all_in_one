@@ -1,5 +1,6 @@
 from PyQt6.QtCore import QObject, pyqtSignal
 from pathlib import Path
+from typing import Dict, List, Optional
 
 
 class PlaylistItem:
@@ -174,3 +175,54 @@ class PlaylistModel(QObject):
         if 0 <= index < len(self.items):
             self.items[index].duration = duration
             self.playlist_changed.emit()
+
+    def serialize(self) -> Dict:
+        """Serialize current playlist state to dictionary format."""
+        return {
+            'playlist_items': [
+                {
+                    'file_path': item.file_path,
+                    'display_name': str(item)
+                }
+                for item in self.items
+            ],
+            'current_index': self.current_index,
+            'loop_mode': self.loop_mode,
+            'repeat_mode': self.repeat_mode
+        }
+
+    def load_from_data(self, data: Dict) -> bool:
+        """
+        Load playlist from serialized data.
+        
+        Args:
+            data: Dictionary containing playlist state
+            
+        Returns:
+            bool: True if loading was successful, False otherwise
+        """
+        try:
+            # Clear current playlist
+            self.items.clear()
+            
+            # Load playlist items
+            for item_data in data.get('playlist_items', []):
+                file_path = item_data.get('file_path')
+                if file_path:
+                    item = PlaylistItem(file_path)
+                    self.items.append(item)
+            
+            # Load other state
+            self.current_index = data.get('current_index', -1)
+            self.loop_mode = data.get('loop_mode', False)
+            self.repeat_mode = data.get('repeat_mode', False)
+            
+            # Emit signals to update UI
+            self.playlist_changed.emit()
+            self.current_item_changed.emit(self.current_index)
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error loading playlist data: {e}")
+            return False
